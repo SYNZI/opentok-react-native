@@ -30,7 +30,6 @@ public final class EventUtils {
             streamInfo.putInt("width", stream.getVideoWidth());
             streamInfo.putString("creationTime", stream.getCreationTime().toString());
             streamInfo.putString("connectionId", stream.getConnection().getConnectionId());
-            streamInfo.putString("sessionId", stream.getSession().getSessionId());
             streamInfo.putMap("connection", prepareJSConnectionMap(stream.getConnection()));
             streamInfo.putString("name", stream.getName());
             streamInfo.putBoolean("hasAudio", stream.hasAudio());
@@ -39,6 +38,10 @@ public final class EventUtils {
                 streamInfo.putString("videoType", "screen");
             } else {
                 streamInfo.putString("videoType", "camera");
+            }
+
+            if (stream.getSession() != null) {
+                streamInfo.putString("sessionId", stream.getSession().getSessionId());
             }
         }
         return streamInfo;
