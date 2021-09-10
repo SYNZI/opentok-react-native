@@ -208,7 +208,15 @@ public class OTSessionManager extends ReactContextBaseJavaModule
         ConcurrentHashMap<String, Subscriber> mSubscribers = sharedState.getSubscribers();
         ConcurrentHashMap<String, Session> mSessions = sharedState.getSessions();
         Stream stream = mSubscriberStreams.get(streamId);
-        Session mSession = mSessions.get(stream.getSession().getSessionId());
+
+        // Patch
+        Session mSession;
+        if (stream != null && stream.getSession() != null) {
+            mSession = mSessions.get(stream.getSession().getSessionId());
+        } else {
+            mSession = null;
+        }
+
         Subscriber mSubscriber = new Subscriber.Builder(getReactApplicationContext(), stream).build();
         mSubscriber.setSubscriberListener(this);
         mSubscriber.setAudioLevelListener(this);
