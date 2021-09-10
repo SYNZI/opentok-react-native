@@ -210,11 +210,9 @@ public class OTSessionManager extends ReactContextBaseJavaModule
         Stream stream = mSubscriberStreams.get(streamId);
 
         // Patch
-        Session mSession;
-        if (stream != null && stream.getSession() != null) {
+        Session mSession = null;
+        if (stream.getSession() != null) {
             mSession = mSessions.get(stream.getSession().getSessionId());
-        } else {
-            mSession = null;
         }
 
         Subscriber mSubscriber = new Subscriber.Builder(getReactApplicationContext(), stream).build();
