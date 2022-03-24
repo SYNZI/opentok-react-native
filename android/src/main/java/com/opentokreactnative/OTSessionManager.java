@@ -181,7 +181,13 @@ public class OTSessionManager extends ReactContextBaseJavaModule
                 mPublisher.cycleCamera();
             }
             if (mPublisher.getCapturer() != null) {
-                mPublisher.getCapturer().setVideoContentHint(Utils.convertVideoContentHint(properties.getString("videoContentHint")));
+                String videoHint = "";
+                String hintProp = properties.getString("videoContentHint");
+                if (hintProp != null) {
+                    videoHint = hintProp;
+                }
+
+                mPublisher.getCapturer().setVideoContentHint(Utils.convertVideoContentHint(videoHint));
             }
         }
         mPublisher.setPublisherListener(this);
