@@ -80,6 +80,7 @@ class OTSessionManager: RCTEventEmitter {
             }
             publisherProperties.cameraFrameRate = Utils.sanitizeFrameRate(properties["frameRate"] as Any);
             publisherProperties.cameraResolution = Utils.sanitizeCameraResolution(properties["resolution"] as Any);
+            publisherProperties.enableOpusDtx = Utils.sanitizeBooleanProperty(properties["enableDtx"] as Any);
             publisherProperties.name = properties["name"] as? String;
             publisherProperties.videoCapture?.videoContentHint = Utils.convertVideoContentHint(properties["videoContentHint"] as Any)
             OTRN.sharedState.publishers.updateValue(OTPublisher(delegate: self, settings: publisherProperties)!, forKey: publisherId);
@@ -96,8 +97,21 @@ class OTSessionManager: RCTEventEmitter {
                 }
                 publisher.videoType = .screen;
                 publisher.videoCapture = OTScreenCapture(view: (screenView))
-            } else if let cameraPosition = properties["cameraPosition"] as? String {
-                publisher.cameraPosition = cameraPosition == "front" ? .front : .back;
+            } else {
+                if let cameraPosition = properties["cameraPosition"] as? String {
+                    publisher.cameraPosition = cameraPosition == "front" ? .front : .back;
+                }
+                
+                let capturer = CustomVideoCapturer()
+                if let enableBlur = properties["backgroundBlur"] as? Bool {
+                    capturer.enableBackgroundBlur(enabled: enableBlur)
+                }
+                
+                if let enablePixelated = properties["pixelatedFace"] as? Bool {
+                    capturer.enablePixelatedFace(enabled: enablePixelated)
+                }
+                
+                publisher.videoCapture = capturer
             }
             publisher.audioFallbackEnabled = Utils.sanitizeBooleanProperty(properties["audioFallbackEnabled"] as Any);
             publisher.publishAudio = Utils.sanitizeBooleanProperty(properties["publishAudio"] as Any);
@@ -224,12 +238,34 @@ class OTSessionManager: RCTEventEmitter {
     
     @objc func changeCameraPosition(_ publisherId: String, cameraPosition: String) -> Void {
         guard let publisher = OTRN.sharedState.publishers[publisherId] else { return }
-        publisher.cameraPosition = cameraPosition == "front" ? .front : .back;
+        let position = cameraPosition == "front" ? AVCaptureDevice.Position.front: AVCaptureDevice.Position.back
+        
+        if let capturer = publisher.videoCapture, capturer.isKind(of: CustomVideoCapturer.self) {
+            (capturer as! CustomVideoCapturer).swapCamera(to: position)
+        } else {
+            publisher.cameraPosition = position
+        }
     }
     
     @objc func changeVideoContentHint(_ publisherId: String, videoContentHint: String) -> Void {
         guard let publisher = OTRN.sharedState.publishers[publisherId] else { return }
         publisher.videoCapture?.videoContentHint = Utils.convertVideoContentHint(videoContentHint);
+    }
+    
+    @objc func backgroundBlur(_ publisherId: String, enable: Bool) -> Void {
+        guard let publisher = OTRN.sharedState.publishers[publisherId] else { return }
+        guard let capturer = publisher.videoCapture else { return }
+        if capturer.isKind(of: CustomVideoCapturer.self) {
+            (capturer as! CustomVideoCapturer).enableBackgroundBlur(enabled: enable)
+        }
+    }
+    
+    @objc func pixelatedFace(_ publisherId: String, enable: Bool) -> Void {
+        guard let publisher = OTRN.sharedState.publishers[publisherId] else { return }
+        guard let capturer = publisher.videoCapture else { return }
+        if capturer.isKind(of: CustomVideoCapturer.self) {
+            (capturer as! CustomVideoCapturer).enablePixelatedFace(enabled: enable)
+        }
     }
     
     @objc func setNativeEvents(_ events: Array<String>) -> Void {

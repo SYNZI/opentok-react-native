@@ -233,6 +233,7 @@ declare module "opentok-react-native" {
     swap?: boolean;
 
     fitToView?: string;
+    
   }
 
   interface OTPublisherProperties {
@@ -261,6 +262,11 @@ declare module "opentok-react-native" {
      * The preferred camera position. When setting this property, if the change is possible, the publisher will use the camera with the specified position. Valid Inputs: 'front' or 'back'
      */
     cameraPosition?: "front" | "back";
+
+    /**
+     * Whether to enable Opus DTX. The default value is false. Setting this to true can reduce bandwidth usage in streams that have long periods of silence.
+     */
+    enableDtx?: boolean;
 
     /**
      * The desired frame rate, in frames per second, of the video. Valid values are 30, 15, 7, and 1. The published stream will use the closest value supported on the publishing client. The frame rate can differ slightly from the value you set, depending on the device of the client. And the video will only use the desired frame rate if the client configuration supports it.
@@ -296,13 +302,24 @@ declare module "opentok-react-native" {
      * To publish a screen-sharing stream, set this property to "screen". If you do not specify a value, this will default to "camera".
      */
     videoSource?: VideoSource;
+
+    /**
+     * Whether to blur background.
+     */
+    backgroundBlur?: boolean;
+
+    /**
+     * Whether to obscure faces on video.
+     */
+    pixelatedFace?: boolean;
+
   }
 
   interface OTPublisherEventHandlers {
     /**
      * The audio level, from 0 to 1.0. Adjust this value logarithmically for use in adjusting a user interface element, such as a volume meter. Use a moving average to smooth the data.
      */
-    audioLevel?: CallbackWithParam<string>;
+    audioLevel?: CallbackWithParam<number>;
 
     /**
      * Sent if the publisher encounters an error. After this message is sent, the publisher can be considered fully detached from a session and may be released.
@@ -360,6 +377,8 @@ declare module "opentok-react-native" {
      * If set to true, the subscriber can subscribe to it's own publisher stream (default: false)
      */
     subscribeToSelf?: boolean;
+
+    children?: CallbackWithParam<string[], void>; 
   }
 
   interface OTSubscriberProperties {
