@@ -31,7 +31,7 @@ const checkAndroidPermissions = () => new Promise((resolve, reject) => {
 const setNativeEvents = (events) => {
   const eventNames = Object.keys(events);
   OT.setNativeEvents(eventNames);
-  
+
   let hasRegisteredEvents;
   if (nativeEvents.listeners) {
     const allEvents = nativeEvents.listeners();
@@ -41,9 +41,17 @@ const setNativeEvents = (events) => {
   }
 
   each(events, (eventHandler, eventType) => {
-    if (!hasRegisteredEvents(eventType)) {
-      nativeEvents.addListener(eventType, eventHandler);
+    // Replace existing listeners with the new ones.
+    // Subscription only happens once when the component is getting mounted, existing listeners
+    // mean that the old component for the same session did not clean up properly. This may
+    // happen when connection was interrupted, for example because internet connection failed.
+    // In this case `removeNativeEvents` will not be called, and old listeners for the session
+    // will not be cleaned up.
+    if (hasRegisteredEvents(eventType)) {
+      nativeEvents.removeAllListeners(eventType);
     }
+
+    nativeEvents.addListener(eventType, eventHandler);
   });
 };
 
